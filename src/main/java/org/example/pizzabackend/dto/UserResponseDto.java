@@ -5,7 +5,7 @@ import org.example.pizzabackend.entity.Role;
 
 @Value
 public class UserResponseDto {
-    Long id;
+    Integer id;
     String username;
     Role role;
 }
