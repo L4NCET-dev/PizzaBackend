@@ -35,7 +35,6 @@ public class PizzaVariantMapper implements Mapper<PizzaVariant, PizzaVariantResp
                 pizza,
                 size,
                 object.getPrice()
-
         );
     }
 }
