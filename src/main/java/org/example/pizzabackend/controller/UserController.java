@@ -2,11 +2,12 @@ package org.example.pizzabackend.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.pizzabackend.dto.CreateUserRequestDto;
-import org.example.pizzabackend.dto.PageResponseDto;
+import org.example.pizzabackend.dto.PageResponse;
 import org.example.pizzabackend.dto.UpdateUserRequestDto;
 import org.example.pizzabackend.dto.UserResponseDto;
 import org.example.pizzabackend.service.UserService;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -21,15 +22,15 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping
+    @GetMapping("/all")
     @ResponseStatus(HttpStatus.OK)
-    public List<UserResponseDto> findAll() {
+    public List<UserResponseDto> findAllWithoutPagination() {
         return userService.findAll();
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public PageResponseDto<UserResponseDto> findAll(Pageable pageable) {
+    public PageResponse<UserResponseDto> findAll(@PageableDefault(page = 0, size = 5) Pageable pageable) {
         return userService.findAll(pageable);
     }
 
@@ -55,8 +56,8 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete (@PathVariable Integer id) {
-        if (!userService.deleteUser(id)){
+    public void delete(@PathVariable Integer id) {
+        if (!userService.deleteUser(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
     }

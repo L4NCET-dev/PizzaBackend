@@ -5,7 +5,7 @@ import lombok.Value;
 import java.util.List;
 
 @Value
-public class PageResponseDto<T> {
+public class PageResponse<T> {
     List<T> content;
     int page;
     int size;
