@@ -5,6 +5,7 @@ import org.example.pizzabackend.dto.*;
 import org.example.pizzabackend.entity.User;
 import org.example.pizzabackend.mapper.UserMapper;
 import org.example.pizzabackend.repository.UserRepository;
+import org.example.pizzabackend.repository.specification.UserSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,7 +20,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class UserService implements  UserDetailsService {
+public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -31,7 +32,10 @@ public class UserService implements  UserDetailsService {
     }
 
     public PageResponse<UserResponseDto> findAll(Pageable pageable, UserFilter filter) {
-        Page<User> page = userRepository.findAll(pageable);
+
+        var spec = UserSpecification.userFilter(filter);
+
+        Page<User> page = userRepository.findAll(spec, pageable);
 
         List<UserResponseDto> content = page.getContent().stream()
                 .map(user -> userMapper.toResponse(user))
