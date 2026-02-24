@@ -1,10 +1,7 @@
 package org.example.pizzabackend.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.pizzabackend.dto.CreateUserRequestDto;
-import org.example.pizzabackend.dto.PageResponse;
-import org.example.pizzabackend.dto.UpdateUserRequestDto;
-import org.example.pizzabackend.dto.UserResponseDto;
+import org.example.pizzabackend.dto.*;
 import org.example.pizzabackend.service.UserService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -30,8 +27,8 @@ public class UserController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public PageResponse<UserResponseDto> findAll(@PageableDefault(page = 0, size = 5) Pageable pageable) {
-        return userService.findAll(pageable);
+    public PageResponse<UserResponseDto> findAll(@PageableDefault(page = 0, size = 5) Pageable pageable, UserFilter filter) {
+        return userService.findAll(pageable, filter);
     }
 
     @GetMapping("/{id}")

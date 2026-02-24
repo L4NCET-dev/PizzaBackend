@@ -20,7 +20,7 @@ public class OrderMapper implements Mapper<Order, OrderResponseDto> {
     public OrderResponseDto map(Order object) {
 
         UserResponseDto user = Optional.ofNullable(object.getUser())
-                .map(userObject -> userMapper.map(userObject))
+                .map(userObject -> userMapper.toResponse(userObject))
                 .orElse(null);
 
         PizzaVariantResponseDto pizzaVariant = Optional.ofNullable(object.getPizzaVariant())
