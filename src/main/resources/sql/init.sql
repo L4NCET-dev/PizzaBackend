@@ -49,3 +49,6 @@ create table if not exists orders
     foreign key (user_id) references users (id),
     foreign key (pizza_variant_id) references pizza_variants (id)
 );
+
+alter table users
+add column password varchar(128) not null;

@@ -11,4 +11,5 @@ public class CreateUserRequestDto {
     String firstName;
     String lastName;
     LocalDate birthDate;
+    String rawPassword;
 }
