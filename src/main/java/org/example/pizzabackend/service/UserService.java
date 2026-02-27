@@ -3,6 +3,7 @@ package org.example.pizzabackend.service;
 import lombok.RequiredArgsConstructor;
 import org.example.pizzabackend.dto.*;
 import org.example.pizzabackend.entity.User;
+import org.example.pizzabackend.exception.UserNotFoundException;
 import org.example.pizzabackend.mapper.UserMapper;
 import org.example.pizzabackend.repository.UserRepository;
 import org.example.pizzabackend.repository.specification.UserSpecification;
@@ -52,9 +53,10 @@ public class UserService implements UserDetailsService {
         );
     }
 
-    public Optional<UserResponseDto> findById(Integer id) {
+    public UserResponseDto findById(Integer id) {
         return userRepository.findById(id)
-                .map(user -> userMapper.toResponse(user));
+                .map(user -> userMapper.toResponse(user))
+                .orElseThrow(() -> new UserNotFoundException(id));
     }
 
     @Transactional
