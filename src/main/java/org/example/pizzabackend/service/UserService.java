@@ -69,21 +69,20 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public Optional<UserResponseDto> updateUser(Integer id, UpdateUserRequestDto updateUserRequestDto) {
+    public UserResponseDto updateUser(Integer id, UpdateUserRequestDto updateUserRequestDto) {
         return userRepository.findById(id)
                 .map(user -> userMapper.updateEntity(updateUserRequestDto, user))
                 .map(user -> userRepository.saveAndFlush(user))
-                .map(user -> userMapper.toResponse(user));
+                .map(user -> userMapper.toResponse(user))
+                .orElseThrow(() -> new UserNotFoundException(id));
     }
 
     @Transactional
-    public boolean deleteUser(Integer id) {
-        return userRepository.findById(id)
-                .map(user -> {
-                    userRepository.delete(user);
-                    return true;
-                })
-                .orElse(false);
+    public void deleteUser(Integer id) {
+        userRepository.findById(id)
+                .ifPresentOrElse(user -> userRepository.delete(user),
+                        () -> new UserNotFoundException(id)
+                );
     }
 
     @Override

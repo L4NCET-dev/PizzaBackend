@@ -44,18 +44,14 @@ public class UserController {
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseStatus(HttpStatus.OK)
     public UserResponseDto update(@PathVariable Integer id, @RequestBody UpdateUserRequestDto updateUserRequestDto) {
-        return userService.updateUser(id, updateUserRequestDto)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        return userService.updateUser(id, updateUserRequestDto);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Integer id) {
-        if (!userService.deleteUser(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
+        userService.deleteUser(id);
     }
 
 }
