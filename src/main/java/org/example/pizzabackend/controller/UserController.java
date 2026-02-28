@@ -1,5 +1,7 @@
 package org.example.pizzabackend.controller;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.example.pizzabackend.dto.*;
 import org.example.pizzabackend.service.UserService;
@@ -8,12 +10,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
 @RestController
+@Validated
 @RequestMapping(value = "/api/users", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 public class UserController {
@@ -33,29 +37,25 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public UserResponseDto findById(@PathVariable Integer id) {
+    public UserResponseDto findById(@PathVariable @Min(1) Integer id) {
         return userService.findById(id);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public UserResponseDto create(@RequestBody CreateUserRequestDto createUserRequestDto) {
+    public UserResponseDto create(@RequestBody @Valid CreateUserRequestDto createUserRequestDto) {
         return userService.createUser(createUserRequestDto);
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseStatus(HttpStatus.OK)
-    public UserResponseDto update(@PathVariable Integer id, @RequestBody UpdateUserRequestDto updateUserRequestDto) {
-        return userService.updateUser(id, updateUserRequestDto)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    public UserResponseDto update(@PathVariable @Min(1) Integer id, @RequestBody UpdateUserRequestDto updateUserRequestDto) {
+        return userService.updateUser(id, updateUserRequestDto);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Integer id) {
-        if (!userService.deleteUser(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
+    public void delete(@PathVariable @Min(1) Integer id) {
+        userService.deleteUser(id);
     }
 
 }

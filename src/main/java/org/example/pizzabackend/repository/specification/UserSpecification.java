@@ -15,9 +15,8 @@ public class UserSpecification {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-
             if (filter == null) {
-                return criteriaBuilder.conjunction(); //where is empty
+                return criteriaBuilder.conjunction(); //when is empty
             }
 
             if (filter.getUsername() != null && !filter.getUsername().isBlank()) {
