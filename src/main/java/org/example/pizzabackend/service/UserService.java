@@ -1,6 +1,7 @@
 package org.example.pizzabackend.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.pizzabackend.dto.*;
 import org.example.pizzabackend.entity.User;
 import org.example.pizzabackend.exception.UserNotFoundException;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserService implements UserDetailsService {
@@ -54,6 +56,9 @@ public class UserService implements UserDetailsService {
     }
 
     public UserResponseDto findById(Integer id) {
+
+        log.debug("Request to find user by id={}", id);
+
         return userRepository.findById(id)
                 .map(user -> userMapper.toResponse(user))
                 .orElseThrow(() -> new UserNotFoundException(id));
@@ -61,6 +66,9 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public UserResponseDto createUser(CreateUserRequestDto createUserRequestDto) {
+
+        log.info("Creating user with username={}", createUserRequestDto.getUsername());
+
         return Optional.ofNullable(createUserRequestDto)
                 .map(userDto -> userMapper.toEntity(userDto))
                 .map(user -> userRepository.save(user))
@@ -70,6 +78,9 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public UserResponseDto updateUser(Integer id, UpdateUserRequestDto updateUserRequestDto) {
+
+        log.info("Updating user id={}", id);
+
         return userRepository.findById(id)
                 .map(user -> userMapper.updateEntity(updateUserRequestDto, user))
                 .map(user -> userRepository.saveAndFlush(user))
@@ -79,6 +90,9 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public void deleteUser(Integer id) {
+
+        log.warn("Deleting user id={}", id);
+
         userRepository.findById(id)
                 .ifPresentOrElse(user -> userRepository.delete(user),
                         () -> new UserNotFoundException(id)
