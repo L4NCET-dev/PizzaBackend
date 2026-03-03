@@ -25,6 +25,8 @@ public class UserController {
 
     private final UserService userService;
 
+
+
     @GetMapping("/all")
     @ResponseStatus(HttpStatus.OK)
     public List<UserResponseDto> findAllWithoutPagination() {

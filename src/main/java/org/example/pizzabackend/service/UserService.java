@@ -2,6 +2,7 @@ package org.example.pizzabackend.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.pizzabackend.config.security.jwt.JwtService;
 import org.example.pizzabackend.dto.*;
 import org.example.pizzabackend.entity.User;
 import org.example.pizzabackend.exception.UserNotFoundException;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,8 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
     public List<UserResponseDto> findAll() {
         return userRepository.findAll().stream()
@@ -95,8 +99,47 @@ public class UserService implements UserDetailsService {
 
         userRepository.findById(id)
                 .ifPresentOrElse(user -> userRepository.delete(user),
-                        () -> new UserNotFoundException(id)
+                        () -> {
+                            throw new UserNotFoundException(id);
+                        }
                 );
+    }
+
+    public JwtAuthenticationDto signIn(UserCredentialsDto credentials) {
+
+        log.info("User sign-in attempt: username={}", credentials.getUsername());
+
+        // 1. достаём пользователя (через уже реализованный loadUserByUsername)
+        UserDetails userDetails = loadUserByUsername(credentials.getUsername());
+
+        // 2. сверяем пароль
+        if (!passwordEncoder.matches(credentials.getPassword(), userDetails.getPassword())) {
+            // Важно: кидаем BadCredentialsException — её легко обработать в GlobalExceptionHandler
+            throw new org.springframework.security.authentication.BadCredentialsException(
+                    "Invalid username or password"
+            );
+        }
+
+        // 3. генерируем пару токенов
+        return jwtService.generateAuthToken(userDetails.getUsername());
+    }
+
+    public JwtAuthenticationDto refreshToken(RefreshTokenDto refreshTokenDto) {
+        String refreshToken = refreshTokenDto.getRefreshToken();
+        log.info("Refresh token attempt");
+
+        // 1. проверяем refresh токен
+        if (!jwtService.validateJwtToken(refreshToken)) {
+            throw new org.springframework.security.authentication.BadCredentialsException(
+                    "Invalid refresh token"
+            );
+        }
+
+        // 2. достаём username из refresh
+        String username = jwtService.getUsernameFromToken(refreshToken);
+
+        // 3. генерим новый access, refresh оставляем прежним
+        return jwtService.refreshBaseToken(username, refreshToken);
     }
 
     @Override
