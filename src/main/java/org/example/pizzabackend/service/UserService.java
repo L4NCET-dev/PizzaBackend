@@ -2,6 +2,7 @@ package org.example.pizzabackend.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.pizzabackend.config.security.jwt.JwtService;
 import org.example.pizzabackend.dto.*;
 import org.example.pizzabackend.entity.User;
 import org.example.pizzabackend.exception.UserNotFoundException;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +25,7 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class UserService implements UserDetailsService {
+public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -93,22 +95,9 @@ public class UserService implements UserDetailsService {
 
         log.warn("Deleting user id={}", id);
 
-        userRepository.findById(id)
-                .ifPresentOrElse(user -> userRepository.delete(user),
-                        () -> new UserNotFoundException(id)
-                );
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+
+        userRepository.delete(user);
     }
-
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User with username %s not found".formatted(username)));
-
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
-                .password(user.getPassword())
-                .roles(user.getRole().name())
-                .build();
-    }
-
 }
