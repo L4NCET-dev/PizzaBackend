@@ -25,12 +25,10 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class UserService implements UserDetailsService {
+public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final JwtService jwtService;
-    private final PasswordEncoder passwordEncoder;
 
     public List<UserResponseDto> findAll() {
         return userRepository.findAll().stream()
@@ -97,61 +95,9 @@ public class UserService implements UserDetailsService {
 
         log.warn("Deleting user id={}", id);
 
-        userRepository.findById(id)
-                .ifPresentOrElse(user -> userRepository.delete(user),
-                        () -> {
-                            throw new UserNotFoundException(id);
-                        }
-                );
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+
+        userRepository.delete(user);
     }
-
-    public JwtAuthenticationDto signIn(UserCredentialsDto credentials) {
-
-        log.info("User sign-in attempt: username={}", credentials.getUsername());
-
-        // 1. достаём пользователя (через уже реализованный loadUserByUsername)
-        UserDetails userDetails = loadUserByUsername(credentials.getUsername());
-
-        // 2. сверяем пароль
-        if (!passwordEncoder.matches(credentials.getPassword(), userDetails.getPassword())) {
-            // Важно: кидаем BadCredentialsException — её легко обработать в GlobalExceptionHandler
-            throw new org.springframework.security.authentication.BadCredentialsException(
-                    "Invalid username or password"
-            );
-        }
-
-        // 3. генерируем пару токенов
-        return jwtService.generateAuthToken(userDetails.getUsername());
-    }
-
-    public JwtAuthenticationDto refreshToken(RefreshTokenDto refreshTokenDto) {
-        String refreshToken = refreshTokenDto.getRefreshToken();
-        log.info("Refresh token attempt");
-
-        // 1. проверяем refresh токен
-        if (!jwtService.validateJwtToken(refreshToken)) {
-            throw new org.springframework.security.authentication.BadCredentialsException(
-                    "Invalid refresh token"
-            );
-        }
-
-        // 2. достаём username из refresh
-        String username = jwtService.getUsernameFromToken(refreshToken);
-
-        // 3. генерим новый access, refresh оставляем прежним
-        return jwtService.refreshBaseToken(username, refreshToken);
-    }
-
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User with username %s not found".formatted(username)));
-
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
-                .password(user.getPassword())
-                .roles(user.getRole().name())
-                .build();
-    }
-
 }
